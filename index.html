@@ -1,619 +1,1263 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-  <meta charset="UTF-8">
-  <title>Galaxia de Flores Amarillas Alex Dev</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Universo de Milena - Experiencia 3D Romántica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Montserrat:wght@300;400;500;600&family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #020208;
+            font-family: 'Montserrat', sans-serif;
+            color: #ffffff;
+            user-select: none;
+        }
 
-    <!--
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-cursive { font-family: 'Great Vibes', cursive; }
 
-Contáctame:
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
 
-   * Crea tus diseños sin código
- https://comparte-amor.vercel.app/
+        /* Glassmorphism UI Panels */
+        .glass-panel {
+            background: rgba(10, 10, 26, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(255, 182, 193, 0.05);
+        }
 
-    * Invitame un café
- https://buymeacoffee.com/alexx.dev
+        .glass-button {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    * Portafolio Web
- https://alexxdev.vercel.app
+        .glass-button:hover {
+            background: rgba(255, 105, 180, 0.25);
+            border-color: rgba(255, 182, 193, 0.5);
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.4);
+            transform: translateY(-2px);
+        }
 
-    * Sigueme en tiktok
- https://www.tiktok.com/@alexx.dev?is_from_webapp=1&sender_device=pc
- 
-    * Canal de WhatsApp
- https://whatsapp.com/channel/0029VazQEXq90x2vIdNkrH1p
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(5, 5, 15, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 105, 180, 0.4);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 105, 180, 0.8);
+        }
 
- 
-   * WhatsApp: +52 5587450945
-https://wa.me/525568916053
+        /* 3D Label Markers */
+        .world-label {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            color: #ffffff;
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(5, 5, 20, 0.7);
+            border: 1px solid rgba(255, 182, 193, 0.3);
+            pointer-events: none;
+            white-space: nowrap;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8), 0 0 10px rgba(255, 105, 180, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
+        .world-label::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid rgba(255, 182, 193, 0.4);
+        }
 
--->
+        .pulsing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ff69b4;
+            box-shadow: 0 0 8px #ff69b4;
+            animation: pulse 1.5s infinite;
+        }
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      overflow: hidden;
-    }
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 12px #ff69b4; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
 
-    *{
-        cursor: url('flor.png'), auto !important;
+        /* Glowing text effects */
+        .glow-title {
+            text-shadow: 0 0 10px rgba(255, 182, 193, 0.6), 0 0 20px rgba(255, 105, 180, 0.4), 0 0 30px rgba(186, 85, 211, 0.3);
+        }
 
-    }
+        /* Modal Overlay Animations */
+        .modal-active {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: scale(1) !important;
+        }
 
-    #container {
-      width: 100vw;
-      height: 100vh;
-      background: radial-gradient(circle at center, #111100 0%, #000000 100%);
-      position: fixed;
-      top: 0;
-      left: 0;
-    }
+        /* Audio Visualizer Waves */
+        .bar {
+            width: 3px;
+            height: 12px;
+            background-color: #ff69b4;
+            border-radius: 3px;
+            animation: bounce 1.2s infinite ease-in-out;
+        }
+        .bar:nth-child(2) { animation-delay: 0.2s; }
+        .bar:nth-child(3) { animation-delay: 0.4s; }
+        .bar:nth-child(4) { animation-delay: 0.1s; }
 
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 1;
-    }
+        @keyframes bounce {
+            0%, 100% { height: 4px; }
+            50% { height: 16px; }
+        }
 
-    #modalCarta {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 100;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    #modalCarta.show {
-      display: flex;
-      opacity: 1;
-    }
-
-    #cartaImg {
-      max-width: 90vw;
-      max-height: 80vh;
-      border-radius: 15px;
-      box-shadow: 0 0 30px rgba(255, 204, 0, 0.6);
-      object-fit: contain;
-      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    #cerrarModal {
-      margin-top: 20px;
-      padding: 10px 30px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
-      background-color: #ffcc00;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
-      transition: transform 0.2s ease, background-color 0.2s ease;
-    }
-
-    #cerrarModal:active {
-      transform: scale(0.95);
-    }
-
-    @keyframes popIn {
-      0% { transform: scale(0.5); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-  </style>
+        /* Constellation Line Overlay canvas */
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+    </style>
 </head>
+<body class="bg-black text-white select-none overflow-hidden">
 
-<body>
-  <div id="container"></div>
+    <!-- 3D Canvas -->
+    <div id="canvas-container"></div>
+    <canvas id="ui-overlay"></canvas>
 
-  <div id="modalCarta">
-    <img id="cartaImg" src="" alt="Carta">
-    <button id="cerrarModal">Cerrar</button>
-  </div>
+    <!-- Top Navigation Header -->
+    <header class="absolute top-0 left-0 right-0 z-10 p-4 md:p-6 flex justify-between items-center pointer-events-none">
+        <div class="pointer-events-auto flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-500 to-purple-600 flex items-center justify-center shadow-lg shadow-pink-500/30">
+                <i class="fa-solid font-cursive text-xl text-white">M</i>
+            </div>
+            <div>
+                <h1 class="font-cinzel text-lg md:text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-purple-200 to-indigo-100 glow-title">
+                    EL UNIVERSO DE MILENA
+                </h1>
+                <p class="text-xs text-pink-300/70 tracking-wider font-light hidden sm:block">Un viaje infinito a través de lo que siento por ti</p>
+            </div>
+        </div>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
-      }
-    }
-  </script>
+        <div class="pointer-events-auto flex items-center space-x-3">
+            <!-- Audio Toggle Player -->
+            <button id="music-btn" class="glass-button p-3 rounded-full flex items-center space-x-2 text-pink-200 hover:text-white" title="Música de Fondo">
+                <i id="music-icon" class="fas fa-music text-sm"></i>
+                <div id="visualizer" class="hidden flex items-end space-x-1 h-4">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </button>
+            
+            <!-- Controls Guide Button -->
+            <button id="info-btn" class="glass-button w-10 h-10 rounded-full flex items-center justify-center text-pink-200 hover:text-white" title="Guía de Navegación">
+                <i class="fas fa-circle-info"></i>
+            </button>
+        </div>
+    </header>
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    <!-- HTML 3D Labels Container -->
+    <div id="labels-container" class="absolute inset-0 z-10 pointer-events-none overflow-hidden"></div>
 
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x000000, 0.0015);
+    <!-- Bottom Carousel Navigation -->
+    <nav class="absolute bottom-4 left-0 right-0 z-10 px-4 pointer-events-none flex justify-center">
+        <div class="glass-panel max-w-4xl w-full rounded-2xl p-2 md:p-3 pointer-events-auto flex items-center justify-between space-x-2 overflow-x-auto no-scrollbar">
+            <button id="prev-btn" class="glass-button p-3 rounded-xl text-pink-300 hover:text-white flex-shrink-0">
+                <i class="fas fa-chevron-left text-sm"></i>
+            </button>
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 4, 18); 
+            <div id="planet-buttons" class="flex space-x-2 overflow-x-auto py-1 px-2 no-scrollbar">
+                <!-- Dynamically generated planet nav buttons -->
+            </div>
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    document.getElementById('container').appendChild(renderer.domElement);
+            <button id="next-btn" class="glass-button p-3 rounded-xl text-pink-300 hover:text-white flex-shrink-0">
+                <i class="fas fa-chevron-right text-sm"></i>
+            </button>
+        </div>
+    </nav>
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.autoRotate = false; 
-    controls.enabled = false; 
+    <!-- World Detail Modal / Carta de Amor -->
+    <div id="detail-modal" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-500 scale-95">
+        <div class="glass-panel max-w-2xl w-full max-h-[85vh] rounded-3xl p-6 md:p-8 flex flex-col justify-between relative border border-pink-500/20 shadow-2xl shadow-purple-900/40 overflow-hidden">
+            <!-- Subtle background decorative glow -->
+            <div id="modal-glow" class="absolute -top-20 -left-20 w-60 h-60 bg-pink-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div id="modal-glow-2" class="absolute -bottom-20 -right-20 w-60 h-60 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
-    const textureLoader = new THREE.TextureLoader();
+            <button id="close-modal-btn" class="absolute top-5 right-5 glass-button w-10 h-10 rounded-full flex items-center justify-center text-gray-300 hover:text-white z-10">
+                <i class="fas fa-xmark text-lg"></i>
+            </button>
 
+            <div class="overflow-y-auto pr-2 my-2 space-y-4">
+                <div class="flex items-center space-x-3">
+                    <span id="modal-category" class="text-xs font-semibold tracking-widest text-pink-400 uppercase px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20">Mundo Cósmico</span>
+                    <span id="modal-date" class="text-xs text-gray-400">Infinito & Siempre</span>
+                </div>
 
-    const flowerExplosionGroup = new THREE.Group();
-    scene.add(flowerExplosionGroup);
-    const explFlowers = [];
-    const fUrls = ["flor1.png", "flor2.png", "flor3.png", "flor4.png", "flor5.png", "flor6.png", "flor7.png"];
-    
-    fUrls.forEach(url => {
-      for(let k=0; k<15; k++) { 
-        const tex = textureLoader.load(url);
-        tex.colorSpace = THREE.SRGBColorSpace; 
-        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
-        
-        sprite.position.set(
-          (Math.random() - 0.5) * 150,
-          (Math.random() - 0.5) * 150,
-          - (Math.random() * 400) 
-        );
-        
-        const s = Math.random() * 2.5 + 1.5;
-        sprite.scale.set(s, s, 1);
-        
-        flowerExplosionGroup.add(sprite);
-        explFlowers.push(sprite);
-      }
-    });
+                <h2 id="modal-title" class="font-cinzel text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-200 via-white to-purple-200 glow-title">
+                    Título del Mundo
+                </h2>
 
-    const galaxyGroup = new THREE.Group();
-    scene.add(galaxyGroup);
-    galaxyGroup.visible = false; 
-    galaxyGroup.scale.set(0, 0, 0); 
+                <div class="w-16 h-0.5 bg-gradient-to-r from-pink-500 to-transparent my-2"></div>
 
-    function createGlowMaterial(color, size = 128) {
-      const canvas = document.createElement('canvas');
-      canvas.width = canvas.height = size;
-      const context = canvas.getContext('2d');
-      const gradient = context.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
-      gradient.addColorStop(0, color);
-      gradient.addColorStop(1, 'rgba(0,0,0,0)');
-      context.fillStyle = gradient;
-      context.fillRect(0, 0, size, size);
-      return new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, blending: THREE.AdditiveBlending }));
-    }
+                <p id="modal-description" class="text-gray-200 text-sm md:text-base leading-relaxed font-light whitespace-pre-line">
+                    Contenido del mensaje amoroso...
+                </p>
 
-    const centralGlow = createGlowMaterial('rgba(255, 230, 100, 0.8)', 256);
-    centralGlow.scale.set(8, 8, 1);
-    galaxyGroup.add(centralGlow); 
+                <div id="modal-quote" class="mt-4 p-4 rounded-xl bg-pink-950/20 border-l-2 border-pink-400 text-xs md:text-sm italic text-pink-200/90 font-cursive text-lg">
+                    "Frase romántica especial..."
+                </div>
+            </div>
 
-    for (let i = 0; i < 15; i++) {
-      const hue = 40 + Math.random() * 25;
-      const nebula = createGlowMaterial(`hsla(${hue}, 100%, 50%, 0.3)`, 256);
-      nebula.scale.set(10 + Math.random() * 20, 10 + Math.random() * 20, 1);
-      nebula.position.set((Math.random() - 0.5) * 40, (Math.random() - 0.5) * 40, (Math.random() - 0.5) * 40);
-      galaxyGroup.add(nebula); 
-    }
+            <div class="pt-4 border-t border-white/10 flex justify-between items-center text-xs text-gray-400">
+                <span>Con todo mi amor ♥</span>
+                <button id="modal-zoom-btn" class="glass-button px-4 py-2 rounded-xl text-pink-200 hover:text-white flex items-center space-x-2 text-xs">
+                    <i class="fas fa-eye"></i>
+                    <span>Ver Mundo en 3D</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-    const galaxyParams = {
-      count: 100000, arms: 4, radius: 10, spin: 2, randomness: 0.3, randomnessPower: 3,
-      insideColor: new THREE.Color(0xffcc00), 
-      outsideColor: new THREE.Color(0xffff66) 
-    };
+    <!-- Info/Instructions Modal -->
+    <div id="info-modal" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300 scale-95">
+        <div class="glass-panel max-w-md w-full rounded-3xl p-6 relative border border-pink-500/20">
+            <button id="close-info-btn" class="absolute top-4 right-4 glass-button w-8 h-8 rounded-full flex items-center justify-center text-gray-300">
+                <i class="fas fa-xmark"></i>
+            </button>
+            <h3 class="font-cinzel text-xl font-bold text-pink-200 mb-4 flex items-center gap-2">
+                <i class="fas fa-compass text-pink-400"></i> Cómo explorar
+            </h3>
+            <ul class="text-sm text-gray-300 space-y-3 font-light">
+                <li class="flex items-start gap-2"><i class="fas fa-hand-pointer text-pink-400 mt-1"></i> <span><strong>Haz clic o toca</strong> cualquier planeta o letra 3D para acercarte y leer el poema/carta.</span></li>
+                <li class="flex items-start gap-2"><i class="fas fa-rotate text-pink-400 mt-1"></i> <span><strong>Arrastra el mouse o dedo</strong> para orbitar y girar el universo.</span></li>
+                <li class="flex items-start gap-2"><i class="fas fa-magnifying-glass-plus text-pink-400 mt-1"></i> <span><strong>Rueda del mouse / Pellizcar</strong> para hacer zoom in/out.</span></li>
+                <li class="flex items-start gap-2"><i class="fas fa-bars text-pink-400 mt-1"></i> <span>Usa el <strong>menú inferior</strong> para viajar directamente entre los distintos mundos.</span></li>
+            </ul>
+        </div>
+    </div>
 
-    const positions = new Float32Array(galaxyParams.count * 3);
-    const colors = new Float32Array(galaxyParams.count * 3);
+    <!-- Background Audio Element -->
+    <audio id="bg-music" loop preload="auto">
+        <source src="https://assets.mixkit.co/music/preview/mixkit-beautiful-dream-493.mp3" type="audio/mpeg">
+    </audio>
 
-    for (let i = 0; i < galaxyParams.count; i++) {
-      const i3 = i * 3;
-      const radius = Math.pow(Math.random(), galaxyParams.randomnessPower) * galaxyParams.radius;
-      const branchAngle = ((i % galaxyParams.arms) / galaxyParams.arms) * Math.PI * 2;
-      const totalAngle = branchAngle + (radius * galaxyParams.spin);
-      
-      positions[i3]     = Math.cos(totalAngle) * radius + (Math.random() - 0.5) * galaxyParams.randomness * radius;
-      positions[i3 + 1] = (Math.random() - 0.5) * galaxyParams.randomness * radius * 0.5;
-      positions[i3 + 2] = Math.sin(totalAngle) * radius + (Math.random() - 0.5) * galaxyParams.randomness * radius;
-      
-      const mixedColor = galaxyParams.insideColor.clone();
-      mixedColor.lerp(galaxyParams.outsideColor, radius / galaxyParams.radius);
-      mixedColor.multiplyScalar(0.7 + 0.3 * Math.random());
-      colors[i3] = mixedColor.r; colors[i3 + 1] = mixedColor.g; colors[i3 + 2] = mixedColor.b;
-    }
+    <!-- 3D Application Logic -->
+    <script>
+        // ==========================================
+        // 1. DATA CONFIGURATION: ROMANTIC WORLDS
+        // ==========================================
+        const WORLDS_DATA = [
+            {
+                id: 'tu-sonrisa',
+                title: 'El Planeta de Tu Sonrisa',
+                subtitle: 'Donde nace la luz de mis días',
+                category: 'Mundo de Luz',
+                color: 0xff69b4, // Bright Pink
+                secondaryColor: 0xff1493,
+                accentColor: 0xffb6c1,
+                hasRings: true,
+                size: 3.5,
+                orbitRadius: 0,
+                orbitSpeed: 0,
+                position: new THREE.Vector3(0, 0, 0), // Center Sun
+                description: `Milena, si mi universo necesitara una sola estrella para existir, esa sería tu sonrisa.\n\nCada vez que sonríes, parece que la gravedad desaparece y el espacio entero se llena de una calidez dorada. Tu risa es la melodía que ilumina mis pensamientos en los momentos más oscuros, devolviéndome siempre la calma y la alegría de existir.\n\nEste planeta central representa el origen de todo lo bonito que siento por ti.`,
+                quote: '“En tu sonrisa reside el mapa de mi felicidad y el destello más brillante de mi universo.”',
+                type: 'sun'
+            },
+            {
+                id: 'tus-ojos',
+                title: 'La Galaxia de Tus Ojos',
+                subtitle: 'Dos abismos donde me gusta perderme',
+                category: 'Mundo Infinito',
+                color: 0x00bfff, // Deep Cyan Blue
+                secondaryColor: 0x1e90ff,
+                accentColor: 0xe0ffff,
+                hasRings: true,
+                ringColor: 0x87cefa,
+                size: 2.2,
+                orbitRadius: 18,
+                orbitSpeed: 0.005,
+                position: new THREE.Vector3(18, 2, 0),
+                description: `Mirar tus ojos es contemplar un cielo nocturno perfecto y sin nubes.\n\nTienen una profundidad tan sincera que en ellos encuentro paz, refugio y verdad. En el brillo de tu mirada hay mil historias por descubrir y un amor tan profundo como el mismo océano interestelar.\n\nPodría pasar vidas enteras varado en tu mirada sin desear regresar jamás a la tierra.`,
+                quote: '“Tus ojos no solo reflejan la luz; son la constelación donde elijo navegar.”',
+                type: 'gas-giant'
+            },
+            {
+                id: 'nuestra-historia',
+                title: 'Nuestra Historia',
+                subtitle: 'El diario de nuestros mejores momentos',
+                category: 'Mundo Memoria',
+                color: 0x9370db, // Medium Purple
+                secondaryColor: 0x8a2be2,
+                accentColor: 0xd8bfd8,
+                hasRings: false,
+                hasMoons: true,
+                moonCount: 3,
+                size: 1.9,
+                orbitRadius: 28,
+                orbitSpeed: 0.0035,
+                position: new THREE.Vector3(-24, -3, 14),
+                description: `Nuestra historia no se escribió por coincidencia, se tejió con cada conversación, cada risa compartida y cada abrazo que detuvo el tiempo.\n\nCada detalle a tu lado guarda un valor incalculable. Guardas en ti la magia de transformar días comunes en recuerdos eternos. Gracias por cada capítulo que hemos escrito y por todos los infinitos que aún nos faltan por descubrir juntos.`,
+                quote: '“El tiempo a tu lado no se mide en horas, sino en instantes inolvidables.”',
+                type: 'terrestrial'
+            },
+            {
+                id: 'tus-abrazos',
+                title: 'El Refugio de Tus Abrazos',
+                subtitle: 'El único lugar donde me siento seguro',
+                category: 'Mundo Cálido',
+                color: 0xff7f50, // Coral / Soft Amber
+                secondaryColor: 0xff4500,
+                accentColor: 0xffdab9,
+                hasRings: true,
+                ringColor: 0xffa07a,
+                size: 2.0,
+                orbitRadius: 38,
+                orbitSpeed: 0.0025,
+                position: new THREE.Vector3(30, 4, -22),
+                description: `Hay lugares en el mundo, pero solo uno donde todo cobra sentido: entre tus brazos.\n\nCuando me abrazas, el ruido del mundo entero se apaga. Tu calor me devuelve la paz, reconforta mi alma y me recuerda que no importa qué tan tormentoso sea el día, siempre tengo un hogar cálido al cual llegar.`,
+                quote: '“Tus abrazos son mi puerto seguro, mi paz y mi mejor refugio.”',
+                type: 'ringed-planet'
+            },
+            {
+                id: 'futuro-juntos',
+                title: 'Nuestro Futuro Juntos',
+                subtitle: 'Los sueños que aún nos faltan por cumplir',
+                category: 'Mundo Promesa',
+                color: 0x20b2aa, // Light Sea Green / Cyan
+                secondaryColor: 0x008b8b,
+                accentColor: 0xafeeee,
+                hasRings: false,
+                size: 1.8,
+                orbitRadius: 48,
+                orbitSpeed: 0.0018,
+                position: new THREE.Vector3(-38, 5, -28),
+                description: `Miro hacia adelante y lo único que deseo es seguir construyendo caminos contigo.\n\nSueño con viajes, risas matutinas, proyectos compartidos, tardes de café y conversaciones interminables. El futuro contigo luce brillante, sereno y hermoso. Sé que sea cual sea el destino, si voy de tu mano, será el lugar correcto.`,
+                quote: '“Mi futuro favorito es aquel en el que tú estás en cada uno de mis días.”',
+                type: 'crystal-world'
+            },
+            {
+                id: 'por-que-te-amo',
+                title: 'Por Qué Te Amo',
+                subtitle: 'Las mil razones que laten en mí',
+                category: 'Mundo Corazón',
+                color: 0xff1493, // Deep Pink
+                secondaryColor: 0xdc143c,
+                accentColor: 0xffc0cb,
+                hasRings: true,
+                ringColor: 0xff69b4,
+                size: 2.3,
+                orbitRadius: 58,
+                orbitSpeed: 0.0012,
+                position: new THREE.Vector3(45, -6, 30),
+                description: `Te amo por tu dulzura, por tu fuerza, por tu bondad genuina y por la forma única en que cuidas de quienes amas.\n\nTe amo por cómo eres cuando nadie te ve, por tus pasiones, por tus gestos sutiles y por la mujer maravillosa que eres. Te amo no solo por todo lo que eres, sino por la persona que soy cuando me encuentro a tu lado.`,
+                quote: '“Te amo en todos los lenguajes, en todas las dimensiones y en cada latido.”',
+                type: 'heart-core'
+            }
+        ];
 
-    const galaxyGeom = new THREE.BufferGeometry();
-    galaxyGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    galaxyGeom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    const galaxyMat = new THREE.PointsMaterial({ size: 0.02, vertexColors: true, depthWrite: false, blending: THREE.AdditiveBlending });
-    
-    const galaxy = new THREE.Points(galaxyGeom, galaxyMat);
-    galaxyGroup.add(galaxy);
+        // ==========================================
+        // 2. GLOBAL APP STATE
+        // ==========================================
+        let scene, camera, renderer, controls;
+        let planetObjects = [];
+        let labelElements = [];
+        let activeWorldIndex = 0;
+        let isFocusedOnWorld = false;
+        let targetCameraPos = new THREE.Vector3(0, 25, 65);
+        let targetLookAtPos = new THREE.Vector3(0, 0, 0);
+        let currentLookAtPos = new THREE.Vector3(0, 0, 0);
+        let isAudioPlaying = false;
+        let shootingStars = [];
+        let cosmicAuroras = [];
+        let bgNebulas = [];
+        let spiralGalaxyMesh;
 
- 
-    const starGeom = new THREE.BufferGeometry();
-    const starCount = 8000;
-    const starPositions = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount; i++) {
-      starPositions[i * 3] = (Math.random() - 0.5) * 400;
-      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 400;
-      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 400;
-    }
-    starGeom.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5, transparent: true });
-    const stars = new THREE.Points(starGeom, starMat);
-    scene.add(stars);
+        const container = document.getElementById('canvas-container');
+        const overlayCanvas = document.getElementById('ui-overlay');
+        const overlayCtx = overlayCanvas.getContext('2d');
 
-  
-    const cometGroup = new THREE.Group();
-    scene.add(cometGroup);
-    const comets = [];
+        // ==========================================
+        // 3. THREE.JS SCENE SETUP
+        // ==========================================
+        function initScene() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x020208, 0.003);
 
-    function createCometMesh() {
-      const group = new THREE.Group();
-      const head = new THREE.Mesh(
-        new THREE.SphereGeometry(0.15, 8, 8),
-        new THREE.MeshBasicMaterial({ color: 0xffffee })
-      );
-      group.add(head);
-      
-      const tailGeo = new THREE.ConeGeometry(0.2, 8, 8);
-      tailGeo.translate(0, -4, 0);
-      const tail = new THREE.Mesh(
-        tailGeo,
-        new THREE.MeshBasicMaterial({ 
-          color: 0xffff88, 
-          transparent: true, opacity: 0.4, 
-          blending: THREE.AdditiveBlending, depthWrite: false 
-        })
-      );
-      group.add(tail);
-      return group;
-    }
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1500);
+            camera.position.set(0, 25, 65);
 
-    function resetComet(comet) {
-      comet.position.set(
-        (Math.random() - 0.5) * 300,
-        150 + Math.random() * 100, 
-        (Math.random() - 0.5) * 300
-      );
-      comet.userData.velocity = new THREE.Vector3(
-        (Math.random() - 0.5) * 3,
-        - (Math.random() * 2 + 2),
-        (Math.random() - 0.5) * 3
-      ).normalize().multiplyScalar(Math.random() * 3 + 2); 
-      comet.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), comet.userData.velocity.clone().normalize());
-    }
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.25;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
 
-    for(let i = 0; i < 12; i++) { 
-      const c = createCometMesh();
-      resetComet(c);
-      cometGroup.add(c);
-      comets.push(c);
-    }
+            // Orbit Controls setup
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 140;
+            controls.minDistance = 5;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.4;
 
+            // Lighting Setup
+            const ambientLight = new THREE.AmbientLight(0x332244, 1.2);
+            scene.add(ambientLight);
 
-    const heartCount = 15000;
-    const hPos = new Float32Array(heartCount * 3);
-    const hCol = new Float32Array(heartCount * 3);
-    for(let i=0; i < heartCount; i++) {
-      const t = Math.PI * 2 * Math.random();
-      let x = 16 * Math.pow(Math.sin(t), 3);
-      let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
-      let z = (Math.random() - 0.5) * 3;
-      
-      const scale = 0.15, noise = 0.4;
-      hPos[i*3] = x * scale + (Math.random() - 0.5) * noise;
-      hPos[i*3+1] = y * scale + (Math.random() - 0.5) * noise;
-      hPos[i*3+2] = z * scale + (Math.random() - 0.5) * noise;
+            // Central Sun Light
+            const sunLight = new THREE.PointLight(0xffb6c1, 3.5, 120);
+            sunLight.position.set(0, 0, 0);
+            scene.add(sunLight);
 
-      const mixedColor = galaxyParams.insideColor.clone();
-      mixedColor.lerp(galaxyParams.outsideColor, Math.random());
-      hCol[i*3] = mixedColor.r; hCol[i*3+1] = mixedColor.g; hCol[i*3+2] = mixedColor.b;
-    }
-    const heartGeom = new THREE.BufferGeometry();
-    heartGeom.setAttribute('position', new THREE.BufferAttribute(hPos, 3));
-    heartGeom.setAttribute('color', new THREE.BufferAttribute(hCol, 3));
-    const heartParticles = new THREE.Points(heartGeom, galaxyMat);
-    heartParticles.position.set(0, 4, 0);
-    heartParticles.scale.set(0, 0, 0); 
-    scene.add(heartParticles);
+            // Subtle Directional Soft Rim Light
+            const rimLight = new THREE.DirectionalLight(0x8a2be2, 1.0);
+            rimLight.position.set(30, 50, 40);
+            scene.add(rimLight);
 
- 
-    function createElegantText(message) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 800; canvas.height = 160;
-      const ctx = canvas.getContext('2d');
-      ctx.font = "italic bold 65px 'Georgia', serif"; 
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.shadowColor = "#ffcc00";
-      ctx.shadowBlur = 20;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(message, 400, 80);
-      return new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true }));
-    }
+            // Build Enhanced Background & Worlds
+            createDeepSpaceBackground();
+            createGalaxyCore();
+            createAuroras();
+            createWorlds();
+            buildNavigationUI();
+            setupEventListeners();
+            resizeOverlayCanvas();
 
-    const mainText = createElegantText("Te amo 💛🌻");
-    mainText.position.set(0, 4, 0);
-    mainText.scale.set(0, 0, 0); 
-    scene.add(mainText);
+            // Hide Loading/Animate
+            animate();
+        }
 
-    const orbitGroup = new THREE.Group();
-    scene.add(orbitGroup);
+        // ==========================================
+        // 4. PROCEDURAL CANVAS TEXTURE GENERATORS
+        // ==========================================
+        function createNebulaTexture(colorHex, opacity = 0.6) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
 
-    function createSmallTextSprite(message) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 700; canvas.height = 140;
-      const context = canvas.getContext('2d');
-      context.font = "bold 45px Arial";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
-      context.fillStyle = "#ffffff";
-      context.shadowColor = "#ffaa00";
-      context.shadowBlur = 10;
-      context.fillText(message, canvas.width / 2, canvas.height / 2);
-      return new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true }));
-    }
+            const gradient = ctx.createRadialGradient(256, 256, 10, 256, 256, 240);
+            const color = new THREE.Color(colorHex);
+            const r = Math.floor(color.r * 255);
+            const g = Math.floor(color.g * 255);
+            const b = Math.floor(color.b * 255);
 
-    const romanticTexts = [
-      "Amor de mi vida 💛", "Eres preciosa 🌻", "Me encantas 🌼", "Mi Amor 💛", 
-      "Eres mi todo 🌻", "Te Amo ☀️", "Siempre juntos 💛", "Eres mi sol 🌻", 
-      "Eres única 🌼", "Te adoro 💛", "My Love 🌻", "Amor de mi vida 💛", 
-      "Eres preciosa 🌻", "Me encantas 🌼", "Mi Amor 💛", "Eres mi todo 🌻", 
-      "Te Amo ☀️", "Siempre juntos 💛", "Eres mi sol 🌻", "Eres única 🌼", 
-      "Te adoro 💛", "My Love 🌻"
-    ];
-    
-    const imageUrls = [
-      "4.png", 
-      "5.png",
-      "6.png",
-      "7.png",
-      "8.png",
-    ];
+            gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${opacity})`);
+            gradient.addColorStop(0.3, `rgba(${r}, ${g}, ${b}, ${opacity * 0.5})`);
+            gradient.addColorStop(0.7, `rgba(${r * 0.5}, ${g * 0.3}, ${b * 0.6}, ${opacity * 0.15})`);
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-    const totalOrbiters = romanticTexts.length + imageUrls.length;
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 512, 512);
 
-    for (let i = 0; i < totalOrbiters; i++) {
-      const radius = 6.0 + (i % 3) * 0.8; 
-      const angle = (i / totalOrbiters) * Math.PI * 2;
-      const heights = [-2.5, -0.8, 0.8, 2.5];
-      const yPos = heights[i % 4] + (Math.random() * 0.4 - 0.2);
+            // Add soft cloud noise texture
+            for (let i = 0; i < 800; i++) {
+                const x = Math.random() * 512;
+                const y = Math.random() * 512;
+                const dist = Math.hypot(x - 256, y - 256);
+                if (dist < 230) {
+                    const alpha = (1 - dist / 230) * 0.08 * Math.random();
+                    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(x, y, Math.random() * 12 + 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
 
-      let orbiter;
-      
-      if (i % 2 === 0) {
-        const textIndex = Math.floor(i / 2) % romanticTexts.length;
-        orbiter = createSmallTextSprite(romanticTexts[textIndex]);
-        orbiter.scale.set(4.5, 0.9, 1);
-      } else {
-        const imgIndex = Math.floor(i / 2) % imageUrls.length;
-        const tex = textureLoader.load(imageUrls[imgIndex]);
-        tex.colorSpace = THREE.SRGBColorSpace; 
-        
-        orbiter = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
-        orbiter.scale.set(1.5, 1.5, 1);
-        
-        orbiter.userData = {
-          esClickeable: true,
-          cartaUrl: `carta${imgIndex + 1}.png`
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createStarParticleTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+
+            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.2, 'rgba(255, 220, 245, 0.9)');
+            gradient.addColorStop(0.5, 'rgba(180, 160, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 64, 64);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // ==========================================
+        // 5. ENHANCED MULTI-LAYERED COSMOS & NEBULAS
+        // ==========================================
+        function createDeepSpaceBackground() {
+            // Layer 1: Ultra Deep Background Starfield (Tiny, dense, subtle)
+            const deepStarGeo = new THREE.BufferGeometry();
+            const deepStarCount = 4500;
+            const deepPos = new Float32Array(deepStarCount * 3);
+            const deepColors = new Float32Array(deepStarCount * 3);
+
+            const starPalette = [
+                new THREE.Color(0xffffff),
+                new THREE.Color(0xb0e0e6),
+                new THREE.Color(0xffc0cb),
+                new THREE.Color(0xe6e6fa),
+                new THREE.Color(0xffd700)
+            ];
+
+            for (let i = 0; i < deepStarCount; i++) {
+                const r = 350 + Math.random() * 450;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+
+                deepPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                deepPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                deepPos[i * 3 + 2] = r * Math.cos(phi);
+
+                const color = starPalette[Math.floor(Math.random() * starPalette.length)];
+                deepColors[i * 3] = color.r;
+                deepColors[i * 3 + 1] = color.g;
+                deepColors[i * 3 + 2] = color.b;
+            }
+
+            deepStarGeo.setAttribute('position', new THREE.BufferAttribute(deepPos, 3));
+            deepStarGeo.setAttribute('color', new THREE.BufferAttribute(deepColors, 3));
+
+            const deepStarMat = new THREE.PointsMaterial({
+                size: 1.2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.75,
+                map: createStarParticleTexture(),
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            const deepStarPoints = new THREE.Points(deepStarGeo, deepStarMat);
+            scene.add(deepStarPoints);
+
+            // Layer 2: Interactive Mid-ground Flickering Starfield
+            const midStarGeo = new THREE.BufferGeometry();
+            const midStarCount = 1800;
+            const midPos = new Float32Array(midStarCount * 3);
+            const midColors = new Float32Array(midStarCount * 3);
+            const midSizes = new Float32Array(midStarCount);
+
+            for (let i = 0; i < midStarCount; i++) {
+                const r = 120 + Math.random() * 230;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+
+                midPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                midPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                midPos[i * 3 + 2] = r * Math.cos(phi);
+
+                const color = starPalette[Math.floor(Math.random() * starPalette.length)];
+                midColors[i * 3] = color.r;
+                midColors[i * 3 + 1] = color.g;
+                midColors[i * 3 + 2] = color.b;
+
+                midSizes[i] = 1.8 + Math.random() * 2.5;
+            }
+
+            midStarGeo.setAttribute('position', new THREE.BufferAttribute(midPos, 3));
+            midStarGeo.setAttribute('color', new THREE.BufferAttribute(midColors, 3));
+
+            const midStarMat = new THREE.PointsMaterial({
+                size: 2.2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.9,
+                map: createStarParticleTexture(),
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            const midStarPoints = new THREE.Points(midStarGeo, midStarMat);
+            scene.add(midStarPoints);
+
+            // Layer 3: Volumetric Ethereal Space Nebulas (Magenta, Cyan, Violet, Gold, Rose)
+            const nebulaConfigs = [
+                { color: 0x8a2be2, pos: new THREE.Vector3(-120, -30, -160), scale: 220, opacity: 0.45 }, // Violet
+                { color: 0xff1493, pos: new THREE.Vector3(140, 50, -180), scale: 260, opacity: 0.4 },  // Magenta
+                { color: 0x00bfff, pos: new THREE.Vector3(-150, 80, -140), scale: 200, opacity: 0.35 },  // Cyan
+                { color: 0xffb6c1, pos: new THREE.Vector3(100, -80, -130), scale: 190, opacity: 0.38 },  // Rose
+                { color: 0xffd700, pos: new THREE.Vector3(0, 110, -200), scale: 240, opacity: 0.25 }     // Soft Gold
+            ];
+
+            nebulaConfigs.forEach(cfg => {
+                const texture = createNebulaTexture(cfg.color, cfg.opacity);
+                const mat = new THREE.SpriteMaterial({
+                    map: texture,
+                    transparent: true,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    opacity: cfg.opacity
+                });
+
+                const sprite = new THREE.Sprite(mat);
+                sprite.position.copy(cfg.pos);
+                sprite.scale.set(cfg.scale, cfg.scale, 1);
+                scene.add(sprite);
+                bgNebulas.push({ mesh: sprite, initialRot: Math.random() * Math.PI, speed: (Math.random() - 0.5) * 0.0003 });
+            });
+
+            // Layer 4: Close Foreground Floating Spatial Dust Particles
+            const dustGeo = new THREE.BufferGeometry();
+            const dustCount = 400;
+            const dustPos = new Float32Array(dustCount * 3);
+
+            for (let i = 0; i < dustCount; i++) {
+                dustPos[i * 3] = (Math.random() - 0.5) * 120;
+                dustPos[i * 3 + 1] = (Math.random() - 0.5) * 120;
+                dustPos[i * 3 + 2] = (Math.random() - 0.5) * 120;
+            }
+
+            dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+            const dustMat = new THREE.PointsMaterial({
+                size: 1.2,
+                color: 0xffb6c1,
+                transparent: true,
+                opacity: 0.5,
+                blending: THREE.AdditiveBlending,
+                map: createStarParticleTexture(),
+                depthWrite: false
+            });
+
+            const dustPoints = new THREE.Points(dustGeo, dustMat);
+            scene.add(dustPoints);
+        }
+
+        // ==========================================
+        // 6. DISTANT SPIRAL GALAXY CORE
+        // ==========================================
+        function createGalaxyCore() {
+            const galaxyGroup = new THREE.Group();
+            const particleCount = 6000;
+            const geo = new THREE.BufferGeometry();
+            const pos = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            const colorInside = new THREE.Color(0xffe4e1); // Misty Rose Core
+            const colorOutside = new THREE.Color(0x4b0082); // Indigo Outer
+
+            const arms = 3;
+            const radius = 110;
+
+            for (let i = 0; i < particleCount; i++) {
+                // Position along spiral arm
+                const r = Math.pow(Math.random(), 2) * radius;
+                const spinAngle = r * 0.12;
+                const branchAngle = ((i % arms) * 2 * Math.PI) / arms;
+
+                const randomX = (Math.random() - 0.5) * (r * 0.15);
+                const randomY = (Math.random() - 0.5) * (r * 0.15);
+                const randomZ = (Math.random() - 0.5) * (r * 0.15);
+
+                pos[i * 3] = Math.cos(branchAngle + spinAngle) * r + randomX;
+                pos[i * 3 + 1] = randomY;
+                pos[i * 3 + 2] = Math.sin(branchAngle + spinAngle) * r + randomZ;
+
+                // Color gradient from core to arm edge
+                const mixedColor = colorInside.clone();
+                mixedColor.lerp(colorOutside, r / radius);
+
+                colors[i * 3] = mixedColor.r;
+                colors[i * 3 + 1] = mixedColor.g;
+                colors[i * 3 + 2] = mixedColor.b;
+            }
+
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const mat = new THREE.PointsMaterial({
+                size: 1.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.4,
+                blending: THREE.AdditiveBlending,
+                map: createStarParticleTexture(),
+                depthWrite: false
+            });
+
+            spiralGalaxyMesh = new THREE.Points(geo, mat);
+            galaxyGroup.add(spiralGalaxyMesh);
+
+            // Position spiral galaxy in far background, nicely tilted
+            galaxyGroup.position.set(0, -40, -220);
+            galaxyGroup.rotation.x = Math.PI * 0.3;
+            galaxyGroup.rotation.z = Math.PI * 0.15;
+            scene.add(galaxyGroup);
+        }
+
+        // ==========================================
+        // 7. COSMIC AURORA WAVES
+        // ==========================================
+        function createAuroras() {
+            const auroraCount = 3;
+            for (let a = 0; a < auroraCount; a++) {
+                const curvePoints = [];
+                const pointCount = 20;
+                const radius = 160 + a * 30;
+
+                for (let i = 0; i <= pointCount; i++) {
+                    const angle = (i / pointCount) * Math.PI * 1.2 - Math.PI * 0.6;
+                    const x = Math.sin(angle) * radius;
+                    const y = Math.sin(i * 0.8 + a) * 25 + (a - 1) * 30;
+                    const z = -Math.cos(angle) * radius - 80;
+                    curvePoints.push(new THREE.Vector3(x, y, z));
+                }
+
+                const curve = new THREE.CatmullRomCurve3(curvePoints);
+                const tubeGeo = new THREE.TubeGeometry(curve, 60, 4.5, 8, false);
+
+                const auroraMat = new THREE.MeshBasicMaterial({
+                    color: a === 0 ? 0x00ffff : (a === 1 ? 0xff00ff : 0x7b68ee),
+                    transparent: true,
+                    opacity: 0.12,
+                    wireframe: true,
+                    blending: THREE.AdditiveBlending
+                });
+
+                const auroraMesh = new THREE.Mesh(tubeGeo, auroraMat);
+                scene.add(auroraMesh);
+                cosmicAuroras.push({ mesh: auroraMesh, speed: 0.0005 + a * 0.0002 });
+            }
+        }
+
+        // ==========================================
+        // 8. PLANET & TEXT WORLD BUILDER
+        // ==========================================
+        function createWorlds() {
+            WORLDS_DATA.forEach((data, index) => {
+                const worldGroup = new THREE.Group();
+                worldGroup.position.copy(data.position);
+
+                // Planet Sphere Geometry
+                const sphereGeo = new THREE.SphereGeometry(data.size, 64, 64);
+                let planetMat;
+
+                if (data.type === 'sun') {
+                    // Glowing Central Sun Planet
+                    planetMat = new THREE.MeshStandardMaterial({
+                        color: data.color,
+                        emissive: 0xff69b4,
+                        emissiveIntensity: 0.8,
+                        roughness: 0.2,
+                        metalness: 0.1
+                    });
+
+                    // Outer Sun Glow Corona
+                    const coronaGeo = new THREE.SphereGeometry(data.size * 1.35, 32, 32);
+                    const coronaMat = new THREE.MeshBasicMaterial({
+                        color: 0xffb6c1,
+                        transparent: true,
+                        opacity: 0.28,
+                        blending: THREE.AdditiveBlending,
+                        side: THREE.BackSide
+                    });
+                    const corona = new THREE.Mesh(coronaGeo, coronaMat);
+                    worldGroup.add(corona);
+
+                } else if (data.type === 'gas-giant' || data.type === 'ringed-planet') {
+                    // Detailed Striped Material
+                    planetMat = new THREE.MeshStandardMaterial({
+                        color: data.color,
+                        roughness: 0.4,
+                        metalness: 0.2,
+                        bumpScale: 0.05
+                    });
+                } else {
+                    planetMat = new THREE.MeshStandardMaterial({
+                        color: data.color,
+                        roughness: 0.6,
+                        metalness: 0.1
+                    });
+                }
+
+                const planetMesh = new THREE.Mesh(sphereGeo, planetMat);
+                planetMesh.castShadow = true;
+                planetMesh.receiveShadow = true;
+                worldGroup.add(planetMesh);
+
+                // Planet Atmosphere Shell
+                const atmosGeo = new THREE.SphereGeometry(data.size * 1.08, 32, 32);
+                const atmosMat = new THREE.MeshBasicMaterial({
+                    color: data.accentColor,
+                    transparent: true,
+                    opacity: 0.22,
+                    blending: THREE.AdditiveBlending
+                });
+                const atmosMesh = new THREE.Mesh(atmosGeo, atmosMat);
+                worldGroup.add(atmosMesh);
+
+                // Optional Planetary Rings
+                if (data.hasRings) {
+                    const ringInner = data.size * 1.4;
+                    const ringOuter = data.size * 2.3;
+                    const ringGeo = new THREE.RingGeometry(ringInner, ringOuter, 64);
+
+                    // Orient Ring horizontally
+                    ringGeo.rotateX(Math.PI / 2.3);
+
+                    const ringMat = new THREE.MeshStandardMaterial({
+                        color: data.ringColor || data.accentColor,
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: 0.7,
+                        roughness: 0.3
+                    });
+                    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                    worldGroup.add(ringMesh);
+                }
+
+                // Orbit Trail Line (if not sun)
+                if (data.orbitRadius > 0) {
+                    const orbitGeo = new THREE.BufferGeometry();
+                    const orbitPoints = [];
+                    const segments = 128;
+                    for (let i = 0; i <= segments; i++) {
+                        const theta = (i / segments) * Math.PI * 2;
+                        orbitPoints.push(new THREE.Vector3(
+                            Math.cos(theta) * data.orbitRadius,
+                            0,
+                            Math.sin(theta) * data.orbitRadius
+                        ));
+                    }
+                    orbitGeo.setFromPoints(orbitPoints);
+                    const orbitMat = new THREE.LineBasicMaterial({
+                        color: data.color,
+                        transparent: true,
+                        opacity: 0.18
+                    });
+                    const orbitLine = new THREE.Line(orbitGeo, orbitMat);
+                    scene.add(orbitLine);
+                }
+
+                // 3D Floating Name/Label Text Ribbon
+                const nameCanvas = document.createElement('canvas');
+                nameCanvas.width = 512;
+                nameCanvas.height = 128;
+                const nCtx = nameCanvas.getContext('2d');
+                nCtx.font = 'Bold 36px Cinzel, serif';
+                nCtx.fillStyle = '#ffffff';
+                nCtx.textAlign = 'center';
+                nCtx.shadowColor = '#ff69b4';
+                nCtx.shadowBlur = 12;
+                nCtx.fillText(data.title.toUpperCase(), 256, 70);
+
+                const nameTex = new THREE.CanvasTexture(nameCanvas);
+                const nameSpriteMat = new THREE.SpriteMaterial({
+                    map: nameTex,
+                    transparent: true,
+                    opacity: 0.95
+                });
+                const nameSprite = new THREE.Sprite(nameSpriteMat);
+                nameSprite.position.set(0, data.size + 2.2, 0);
+                nameSprite.scale.set(10, 2.5, 1);
+                worldGroup.add(nameSprite);
+
+                // Attach references
+                planetMesh.userData = { worldIndex: index, data: data };
+                scene.add(worldGroup);
+
+                planetObjects.push({
+                    group: worldGroup,
+                    mesh: planetMesh,
+                    data: data,
+                    angle: Math.atan2(data.position.z, data.position.x) || 0
+                });
+
+                // HTML Label Overlay Item
+                createHTMLLabel(data, index);
+            });
+        }
+
+        // ==========================================
+        // 9. HTML OVERLAY LABELS
+        // ==========================================
+        function createHTMLLabel(data, index) {
+            const labelsContainer = document.getElementById('labels-container');
+            const label = document.createElement('div');
+            label.className = 'world-label';
+            label.id = `label-${index}`;
+            label.innerHTML = `<div class="pulsing-dot"></div> <span>${data.title}</span>`;
+            labelsContainer.appendChild(label);
+            labelElements.push(label);
+        }
+
+        // ==========================================
+        // 10. NAVIGATION UI CONTROLLER
+        // ==========================================
+        function buildNavigationUI() {
+            const buttonsContainer = document.getElementById('planet-buttons');
+            buttonsContainer.innerHTML = '';
+
+            WORLDS_DATA.forEach((world, index) => {
+                const btn = document.createElement('button');
+                btn.className = `glass-button px-4 py-2 rounded-xl text-xs font-semibold tracking-wider flex items-center space-x-2 whitespace-nowrap transition-all duration-300 ${
+                    index === activeWorldIndex ? 'bg-pink-500/30 border-pink-400 text-white shadow-lg shadow-pink-500/30' : 'text-gray-300'
+                }`;
+                btn.innerHTML = `<i class="fas fa-globe text-[10px]" style="color: #${world.color.toString(16)}"></i> <span>${world.title}</span>`;
+                btn.addEventListener('click', () => focusOnWorld(index));
+                buttonsContainer.appendChild(btn);
+            });
+        }
+
+        function updateNavigationUI() {
+            const buttons = document.getElementById('planet-buttons').children;
+            for (let i = 0; i < buttons.length; i++) {
+                if (i === activeWorldIndex) {
+                    buttons[i].classList.add('bg-pink-500/30', 'border-pink-400', 'text-white', 'shadow-lg', 'shadow-pink-500/30');
+                    buttons[i].classList.remove('text-gray-300');
+                } else {
+                    buttons[i].classList.remove('bg-pink-500/30', 'border-pink-400', 'text-white', 'shadow-lg', 'shadow-pink-500/30');
+                    buttons[i].classList.add('text-gray-300');
+                }
+            }
+        }
+
+        function focusOnWorld(index) {
+            activeWorldIndex = index;
+            isFocusedOnWorld = true;
+            updateNavigationUI();
+
+            const targetWorld = planetObjects[index];
+            const worldPos = new THREE.Vector3();
+            targetWorld.group.getWorldPosition(worldPos);
+
+            // Calculate camera offset based on planet size
+            const offsetDist = targetWorld.data.size * 4 + 8;
+            targetCameraPos.set(
+                worldPos.x + offsetDist * 0.7,
+                worldPos.y + offsetDist * 0.4,
+                worldPos.z + offsetDist * 0.8
+            );
+            targetLookAtPos.copy(worldPos);
+
+            // Open Detail Modal with smooth delay
+            setTimeout(() => {
+                openDetailModal(targetWorld.data);
+            }, 800);
+        }
+
+        // ==========================================
+        // 11. MODAL MANAGEMENT
+        // ==========================================
+        function openDetailModal(data) {
+            document.getElementById('modal-title').textContent = data.title;
+            document.getElementById('modal-category').textContent = data.category;
+            document.getElementById('modal-description').textContent = data.description;
+            document.getElementById('modal-quote').textContent = data.quote;
+
+            const modal = document.getElementById('detail-modal');
+            modal.classList.add('modal-active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('detail-modal');
+            modal.classList.remove('modal-active');
+        }
+
+        // ==========================================
+        // 12. SHOOTING STARS SYSTEM
+        // ==========================================
+        function spawnShootingStar() {
+            if (Math.random() > 0.03) return; // Random trigger frequency
+
+            const startX = (Math.random() - 0.5) * 200;
+            const startY = 60 + Math.random() * 40;
+            const startZ = (Math.random() - 0.5) * 150 - 50;
+
+            const length = 15 + Math.random() * 20;
+            const geo = new THREE.BufferGeometry();
+            const positions = new Float32Array([
+                startX, startY, startZ,
+                startX - length, startY - length * 0.6, startZ - length * 0.4
+            ]);
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const mat = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 1,
+                blending: THREE.AdditiveBlending
+            });
+
+            const line = new THREE.Line(geo, mat);
+            scene.add(line);
+
+            shootingStars.push({
+                mesh: line,
+                opacity: 1,
+                speed: 1.8 + Math.random() * 1.5
+            });
+        }
+
+        function updateShootingStars() {
+            for (let i = shootingStars.length - 1; i >= 0; i--) {
+                const star = shootingStars[i];
+                star.mesh.position.x += star.speed;
+                star.mesh.position.y -= star.speed * 0.6;
+                star.opacity -= 0.025;
+                star.mesh.material.opacity = Math.max(0, star.opacity);
+
+                if (star.opacity <= 0) {
+                    scene.remove(star.mesh);
+                    star.mesh.geometry.dispose();
+                    star.mesh.material.dispose();
+                    shootingStars.splice(i, 1);
+                }
+            }
+        }
+
+        // ==========================================
+        // 13. EVENT LISTENERS & INTERACTION
+        // ==========================================
+        function setupEventListeners() {
+            window.addEventListener('resize', onWindowResize);
+
+            // Raycaster for Planet Clicking
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            window.addEventListener('click', (event) => {
+                // Ignore clicks on UI controls
+                if (event.target.closest('button') || event.target.closest('#detail-modal') || event.target.closest('#info-modal')) return;
+
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(planetObjects.map(p => p.mesh));
+
+                if (intersects.length > 0) {
+                    const hitWorldIndex = intersects[0].object.userData.worldIndex;
+                    focusOnWorld(hitWorldIndex);
+                }
+            });
+
+            // UI Buttons
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                let prevIndex = activeWorldIndex - 1;
+                if (prevIndex < 0) prevIndex = WORLDS_DATA.length - 1;
+                focusOnWorld(prevIndex);
+            });
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                let nextIndex = (activeWorldIndex + 1) % WORLDS_DATA.length;
+                focusOnWorld(nextIndex);
+            });
+
+            document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+            document.getElementById('modal-zoom-btn').addEventListener('click', closeModal);
+
+            // Info Modal
+            const infoModal = document.getElementById('info-modal');
+            document.getElementById('info-btn').addEventListener('click', () => {
+                infoModal.classList.add('modal-active');
+            });
+            document.getElementById('close-info-btn').addEventListener('click', () => {
+                infoModal.classList.remove('modal-active');
+            });
+
+            // Music Audio Toggle Player
+            const musicBtn = document.getElementById('music-btn');
+            const bgMusic = document.getElementById('bg-music');
+            const visualizer = document.getElementById('visualizer');
+            const musicIcon = document.getElementById('music-icon');
+
+            musicBtn.addEventListener('click', () => {
+                if (isAudioPlaying) {
+                    bgMusic.pause();
+                    visualizer.classList.add('hidden');
+                    musicIcon.classList.remove('hidden');
+                    isAudioPlaying = false;
+                } else {
+                    bgMusic.play().then(() => {
+                        visualizer.classList.remove('hidden');
+                        musicIcon.classList.add('hidden');
+                        isAudioPlaying = true;
+                    }).catch(err => {
+                        console.log("Audio play blocked by browser:", err);
+                    });
+                }
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            resizeOverlayCanvas();
+        }
+
+        function resizeOverlayCanvas() {
+            overlayCanvas.width = window.innerWidth;
+            overlayCanvas.height = window.innerHeight;
+        }
+
+        // ==========================================
+        // 14. 2D OVERLAY CONSTELLATION LINES
+        // ==========================================
+        function drawConstellations() {
+            overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            overlayCtx.strokeStyle = 'rgba(255, 182, 193, 0.12)';
+            overlayCtx.lineWidth = 1;
+
+            const screenPositions = [];
+
+            // Project 3D planet positions to 2D screen coordinates
+            planetObjects.forEach(obj => {
+                const worldPos = new THREE.Vector3();
+                obj.group.getWorldPosition(worldPos);
+
+                const projected = worldPos.clone().project(camera);
+                const x = (projected.x * 0.5 + 0.5) * overlayCanvas.width;
+                const y = (-(projected.y * 0.5) + 0.5) * overlayCanvas.height;
+
+                screenPositions.push({ x, y, visible: projected.z < 1 });
+            });
+
+            // Draw subtle interconnecting energy constellation lines
+            overlayCtx.beginPath();
+            for (let i = 0; i < screenPositions.length; i++) {
+                const nextIndex = (i + 1) % screenPositions.length;
+                if (screenPositions[i].visible && screenPositions[nextIndex].visible) {
+                    overlayCtx.moveTo(screenPositions[i].x, screenPositions[i].y);
+                    overlayCtx.lineTo(screenPositions[nextIndex].x, screenPositions[nextIndex].y);
+                }
+            }
+            overlayCtx.stroke();
+        }
+
+        function updateLabels() {
+            planetObjects.forEach((obj, index) => {
+                const label = labelElements[index];
+                if (!label) return;
+
+                const worldPos = new THREE.Vector3();
+                obj.group.getWorldPosition(worldPos);
+                worldPos.y += obj.data.size + 1.2;
+
+                const projected = worldPos.clone().project(camera);
+
+                // Hide label if behind camera
+                if (projected.z > 1) {
+                    label.style.opacity = '0';
+                    return;
+                }
+
+                const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-(projected.y * 0.5) + 0.5) * window.innerHeight;
+
+                label.style.left = `${x}px`;
+                label.style.top = `${y}px`;
+                label.style.opacity = isFocusedOnWorld ? '0.4' : '0.9';
+            });
+        }
+
+        // ==========================================
+        // 15. MAIN ANIMATION LOOP
+        // ==========================================
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Orbit Planets around Sun (except Sun itself)
+            planetObjects.forEach(obj => {
+                if (obj.data.orbitRadius > 0) {
+                    obj.angle += obj.data.orbitSpeed;
+                    obj.group.position.x = Math.cos(obj.angle) * obj.data.orbitRadius;
+                    obj.group.position.z = Math.sin(obj.angle) * obj.data.orbitRadius;
+                }
+                // Slow self rotation
+                obj.mesh.rotation.y += 0.008;
+            });
+
+            // Animate Background Elements
+            bgNebulas.forEach(neb => {
+                neb.mesh.rotation.z += neb.speed;
+            });
+
+            if (spiralGalaxyMesh) {
+                spiralGalaxyMesh.rotation.z += 0.0002;
+            }
+
+            cosmicAuroras.forEach(aurora => {
+                aurora.mesh.rotation.y += aurora.speed;
+            });
+
+            // Dynamic Shooting Stars
+            spawnShootingStar();
+            updateShootingStars();
+
+            // Smooth Camera Interpolation when Focused on World
+            if (isFocusedOnWorld) {
+                camera.position.lerp(targetCameraPos, 0.04);
+                currentLookAtPos.lerp(targetLookAtPos, 0.04);
+                controls.target.copy(currentLookAtPos);
+            }
+
+            controls.update();
+
+            // Render 2D Overlays & 3D Scene
+            updateLabels();
+            drawConstellations();
+            renderer.render(scene, camera);
+        }
+
+        // Initialize application on window load
+        window.onload = function() {
+            initScene();
         };
-      }
-
-      orbiter.position.set(Math.cos(angle)*radius, yPos, Math.sin(angle)*radius);
-      orbitGroup.add(orbiter);
-    }
-    orbitGroup.scale.set(0, 0, 0);
-
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    const modalCarta = document.getElementById('modalCarta');
-    const cartaImg = document.getElementById('cartaImg');
-    const cerrarModal = document.getElementById('cerrarModal');
-    let isModalOpen = false;
-
-    window.addEventListener('pointerdown', (event) => {
-      if(isModalOpen) return; 
-
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-
-      const intersects = raycaster.intersectObjects(orbitGroup.children);
-
-      if (intersects.length > 0) {
-        const objetoTocado = intersects[0].object;
-        
-        if (objetoTocado.userData && objetoTocado.userData.esClickeable) {
-          abrirCarta(objetoTocado.userData.cartaUrl);
-        }
-      }
-    });
-
-    function abrirCarta(url) {
-      cartaImg.src = url;
-      modalCarta.classList.add('show');
-      isModalOpen = true;
-      controls.enabled = false;
-    }
-
-    cerrarModal.addEventListener('click', () => {
-      modalCarta.classList.remove('show');
-      isModalOpen = false;
-      setTimeout(() => { cartaImg.src = ""; }, 300); 
-      if (stage === 3) controls.enabled = true;
-    });
-
-
-   
-    const clock = new THREE.Clock();
-    let stage = 0; 
-    let timeProgress = 0;
-
-    function easeOutCubic(x) {
-      return 1 - Math.pow(1 - x, 3);
-    }
-
-    function animate() {
-      requestAnimationFrame(animate);
-      const delta = Math.min(clock.getDelta(), 0.1); 
-      const time = clock.getElapsedTime();
-
-      comets.forEach(comet => {
-        comet.position.add(comet.userData.velocity);
-        if (comet.position.y < -200 || Math.abs(comet.position.x) > 300 || Math.abs(comet.position.z) > 300) {
-          resetComet(comet);
-        }
-      });
-
-      if (stage === 0) {
-        timeProgress += delta * 0.3; 
-        
-        const pos = stars.geometry.attributes.position.array;
-        for(let i = 2; i < pos.length; i += 3) {
-          pos[i] += 25; 
-          if(pos[i] > 100) {
-            pos[i] = -200; 
-            pos[i-1] = (Math.random() - 0.5) * 400;
-            pos[i-2] = (Math.random() - 0.5) * 400;
-          }
-        }
-        stars.geometry.attributes.position.needsUpdate = true;
-
-        explFlowers.forEach(sprite => {
-          sprite.position.z += 25; 
-          if (sprite.position.z > 50) { 
-            sprite.position.z = -200 - Math.random() * 100;
-            sprite.position.x = (Math.random() - 0.5) * 150;
-            sprite.position.y = (Math.random() - 0.5) * 150;
-          }
-        });
-
-        if (timeProgress >= 1) {
-          stage = 1;
-          timeProgress = 0;
-          galaxyGroup.visible = true; 
-        }
-      } 
-      else if (stage === 1) {
-        timeProgress += delta * 0.5; 
-        const scale = easeOutCubic(Math.min(timeProgress, 1));
-        
-        galaxyGroup.scale.set(scale, scale, scale);
-
-        const speed = 25 * (1 - scale);
-        
-        const pos = stars.geometry.attributes.position.array;
-        for(let i = 2; i < pos.length; i += 3) {
-          pos[i] += speed > 0.1 ? speed : 0;
-          if(pos[i] > 100) pos[i] = -200;
-        }
-        stars.geometry.attributes.position.needsUpdate = true;
-
-        explFlowers.forEach(sprite => {
-          sprite.position.z += speed > 0.1 ? speed : 0;
-          if (sprite.position.z > 50) {
-            sprite.position.z = -200 - Math.random() * 100;
-            sprite.position.x = (Math.random() - 0.5) * 150;
-            sprite.position.y = (Math.random() - 0.5) * 150;
-          }
-        });
-
-        if (timeProgress >= 1) {
-          stage = 2;
-          timeProgress = 0;
-        }
-      } 
-      else if (stage === 2) {
-        timeProgress += delta * 0.8; 
-        const scale = easeOutCubic(Math.min(timeProgress, 1));
-        
-        heartParticles.scale.set(scale, scale, scale);
-        orbitGroup.scale.set(scale, scale, scale);
-        mainText.scale.set(5 * scale, 1 * scale, 1); 
-
-        explFlowers.forEach(sprite => {
-          sprite.position.applyAxisAngle(new THREE.Vector3(0,1,0), 0.001);
-        });
-
-        if (timeProgress >= 1) {
-          stage = 3;
-          if(!isModalOpen) controls.enabled = true; 
-        }
-      }
-
-      if (!isModalOpen) {
-        if (stage >= 1) galaxyGroup.rotation.y += 0.001;
-        if (stage >= 2) orbitGroup.rotation.y += 0.001;
-
-        if (stage === 3) {
-           stars.rotation.y += 0.0002; 
-           
-           const pulse = 1 + Math.sin(time * 2.5) * 0.03;
-           heartParticles.scale.set(pulse, pulse, pulse);
-           heartParticles.position.y = 4 + Math.sin(time) * 0.2;
-           mainText.position.y = 4 + Math.sin(time) * 0.2;
-           
-           explFlowers.forEach(sprite => {
-             sprite.position.applyAxisAngle(new THREE.Vector3(0,1,0), 0.001);
-           });
-        }
-      }
-
-      controls.update();
-      renderer.render(scene, camera);
-    }
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    animate();
-  </script>
+    </script>
 </body>
-
-
-  <!--
-
-Contáctame:
-
-   * Crea tus diseños sin código
- https://comparte-amor.vercel.app/
-
-    * Invitame un café
- https://buymeacoffee.com/alexx.dev
-
-    * Portafolio Web
- https://alexxdev.vercel.app
-
-    * Sigueme en tiktok
- https://www.tiktok.com/@alexx.dev?is_from_webapp=1&sender_device=pc
- 
-    * Canal de WhatsApp
- https://whatsapp.com/channel/0029VazQEXq90x2vIdNkrH1p
-
- 
-   * WhatsApp: +52 5587450945
-https://wa.me/525568916053
-
-
--->
-
 </html>
